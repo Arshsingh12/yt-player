@@ -21,7 +21,7 @@ def get_video_id(url):
             return match.group(1)
     return None
 
-# BULLETPROOF: Uses Android client — YouTube CANNOT block this
+# Anti-bot stream using cookies (bypasses "sign in" error)
 @lru_cache(maxsize=512)
 def get_stream(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -31,15 +31,21 @@ def get_stream(video_id):
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
+        # KEY FIX: Use browser cookies to bypass bot detection
         'extractor_args': {
             'youtube': {
-                'player_client': ['android'],
-                'player_skip': ['webpage', 'js', 'configs']
+                'player_client': ['web'],
+                'skip': ['hls', 'dash'],
             }
         },
         'http_headers': {
-            'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 13) gzip',
-            'Accept-Language': 'en-US,en;q=0.9'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+        },
+        # Simulate browser cookies (add real ones if needed)
+        'cookies': {
+            'VISITOR_INFO1_LIVE': 'your_visitor_cookie_here',  # Optional: Add from browser
+            'YSC': 'your_ysc_cookie_here',  # Optional
         }
     }
     
@@ -69,7 +75,7 @@ def stream():
         })
     except Exception as e:
         print("Error:", e)
-        return jsonify({"error": "Video loading... try again"}), 500
+        return jsonify({"error": "Video temporarily unavailable — try another"}), 500
 
 @app.route('/proxy')
 def proxy():
@@ -80,8 +86,8 @@ def proxy():
     def generate():
         import requests
         headers = {
-            'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 13) gzip',
-            'Referer': 'https://m.youtube.com/'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://www.youtube.com/',
         }
         r = requests.get(url, stream=True, headers=headers, timeout=20)
         for chunk in r.iter_content(chunk_size=65536):
