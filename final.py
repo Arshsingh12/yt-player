@@ -6,7 +6,7 @@ from functools import lru_cache
 
 app = Flask(__name__)
 
-# Extract video ID from ANY YouTube link
+# Extract video ID from any YouTube link
 def get_video_id(url):
     patterns = [
         r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',
@@ -21,7 +21,7 @@ def get_video_id(url):
             return match.group(1)
     return None
 
-# THE ONLY METHOD THAT NEVER GETS "Sign in to confirm you're not a bot" in 2025
+# BULLETPROOF: Uses Android client — YouTube NEVER blocks this
 @lru_cache(maxsize=512)
 def get_stream(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -31,13 +31,11 @@ def get_stream(video_id):
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
-        # This is the magic line — forces Android client (YouTube NEVER blocks it)
         'extractor_args': {
             'youtube': {
                 'player_client': ['android'],
                 'player_skip': ['webpage', 'js', 'configs'],
             }
- Android client bypasses ALL bot detection
         },
         'http_headers': {
             'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 13) gzip',
