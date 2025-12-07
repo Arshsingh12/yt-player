@@ -21,7 +21,7 @@ def get_video_id(url):
             return match.group(1)
     return None
 
-# BULLETPROOF: Uses Android client — YouTube NEVER blocks this
+# BULLETPROOF: Uses Android client — YouTube CANNOT block this
 @lru_cache(maxsize=512)
 def get_stream(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -34,13 +34,13 @@ def get_stream(video_id):
         'extractor_args': {
             'youtube': {
                 'player_client': ['android'],
-                'player_skip': ['webpage', 'js', 'configs'],
+                'player_skip': ['webpage', 'js', 'configs']
             }
         },
         'http_headers': {
             'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 13) gzip',
-            'Accept-Language': 'en-US,en;q=0.9',
-        },
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
     }
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -69,7 +69,7 @@ def stream():
         })
     except Exception as e:
         print("Error:", e)
-        return jsonify({"error": "Try again in 30 seconds"}), 500
+        return jsonify({"error": "Video loading... try again"}), 500
 
 @app.route('/proxy')
 def proxy():
@@ -81,7 +81,7 @@ def proxy():
         import requests
         headers = {
             'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 13) gzip',
-            'Referer': 'https://m.youtube.com/',
+            'Referer': 'https://m.youtube.com/'
         }
         r = requests.get(url, stream=True, headers=headers, timeout=20)
         for chunk in r.iter_content(chunk_size=65536):
